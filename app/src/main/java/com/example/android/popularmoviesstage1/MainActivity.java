@@ -8,18 +8,37 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
 
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+
     @InjectView(R.id.main_imageView) ImageView mImageView;
+
     private static final int EXISTING_LOADER = 0;
+    public static final String IMDB_API_KEY = "HIDDEN";
+     public static final String IMDB_BASE_URL = "https://api.themoviedb.org/3/movie/550";
+    //public static final String IMDB_BASE_URL = "http://image.tmdb.org/t/p/";
+    private String imdbSize = "w185";
+    private String imdbPath = "nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg";
+    // https://api.themoviedb.org/3/movie/550?api_key=1dd7da8ccd7953d974d600c70d57eba7
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +72,102 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override public Movie[] loadInBackground() {
 
                 // Create URL object
+                //      URL url = createUrl(IMDB_BASE_URL + imdbSize + imdbPath + "&api_key=" + IMDB_API_KEY);
+                URL url = createUrl(IMDB_BASE_URL + "?api_key=" + IMDB_API_KEY);
                 // Perform HTTP request to the URL and receive a JSON response back
-                // extract data from Json with error handling. You should get back a Movie[]
+                String jsonResponse = "";
+                try {
+                    jsonResponse = makeHttpRequest(url);
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+                }
+                // extract data from Json with error handling. You should get back the poster_path value.
+
                 // return that Array
-                return new Movie[0];
+
+                Movie testMovie = new Movie();
+                testMovie.setPosterImageImdbUrl(url);
+                Movie[] movies = {testMovie};
+                // return new Movie[0];
+                return movies;
             }
+
+            /**
+             * Returns new URL object from the given string URL.
+             */
+            private URL createUrl(String urlString) {
+                URL url;
+                try {
+                    url = new URL(urlString);
+                } catch (MalformedURLException exception) {
+                    Log.e(LOG_TAG, "Error with creating URL" + urlString, exception);
+                    return null;
+                }
+                return url;
+            }
+
+            /**
+             * Make an HTTP request to the given URL and return a String as the response.
+             */
+            private String makeHttpRequest(URL url) throws IOException {
+                String jsonResponse = "";
+
+                // If the URL is null, then return early.
+                if (url == null) {
+                    return jsonResponse;
+                }
+
+                HttpURLConnection urlConnection = null;
+                InputStream inputStream = null;
+                try {
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                  //  urlConnection.setReadTimeout(READ_TIMEOUT_VALUE);
+                  //  urlConnection.setConnectTimeout(CONNECT_TIMEOUT_VALUE);
+                    urlConnection.connect();
+
+                    // If the request was successful (response code 200),
+                    // then read the input stream and parse the response.
+                    if (urlConnection.getResponseCode() == 200) {
+                        inputStream = urlConnection.getInputStream();
+                        jsonResponse = readFromStream(inputStream);
+                    }
+                    else {
+                        Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+                    }
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Problem retrieving JSON results.", e);
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                    if (inputStream != null) {
+                        // function must handle java.io.IOException here
+                        inputStream.close();
+                    }
+                }
+                return jsonResponse;
+            }
+
+            /**
+             * Convert the {@link InputStream} into a String which contains the
+             * whole JSON response from the server.
+             */
+            private String readFromStream(InputStream inputStream) throws IOException {
+                StringBuilder output = new StringBuilder();
+                if (inputStream != null) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+                    BufferedReader reader = new BufferedReader(inputStreamReader);
+                    String line = reader.readLine();
+                    while (line != null) {
+                        output.append(line);
+                        line = reader.readLine();
+                    }
+                }
+                return output.toString();
+            }
+
+
         };
     }
 
@@ -65,7 +175,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override public void onLoadFinished(Loader<Movie[]> loader, Movie[] movies) {
         Context context = getApplication().getBaseContext();
 
-        Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(mImageView);
+        URL testUrl = movies[0].getPosterImageImdbUrl();
+        //Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(mImageView);
+        Picasso.with(context).load(testUrl.toString()).into(mImageView);
 
     }
 
