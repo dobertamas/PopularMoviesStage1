@@ -8,11 +8,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,11 +38,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final int EXISTING_LOADER = 0;
     public static final String IMDB_API_KEY = "HIDDEN";
-     public static final String IMDB_BASE_URL = "https://api.themoviedb.org/3/movie/550";
-    //public static final String IMDB_BASE_URL = "http://image.tmdb.org/t/p/";
-    private String imdbSize = "w185";
-    private String imdbPath = "nBNZadXqJSdt05SHLqgT0HuC5Gm.jpg";
-    // https://api.themoviedb.org/3/movie/550?api_key=1dd7da8ccd7953d974d600c70d57eba7
+    public static final String IMDB_BASE_URL = "https://api.themoviedb.org/3/movie/550";
+    public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
+    private String imdbSize = "w185/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +71,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // We create a Loader object and return it to the system inside this callback method.
     @Override public Loader<Movie[]> onCreateLoader(int i, Bundle bundle) {
         return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
+            String urlString;
+
             @Override public Movie[] loadInBackground() {
 
                 // Create URL object
-                //      URL url = createUrl(IMDB_BASE_URL + imdbSize + imdbPath + "&api_key=" + IMDB_API_KEY);
                 URL url = createUrl(IMDB_BASE_URL + "?api_key=" + IMDB_API_KEY);
                 // Perform HTTP request to the URL and receive a JSON response back
                 String jsonResponse = "";
@@ -82,14 +85,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     Log.e(LOG_TAG, "Problem making the HTTP request.", e);
                 }
                 // extract data from Json with error handling. You should get back the poster_path value.
-
-                // return that Array
+                try {
+                    urlString = extracturlStringFromJson(jsonResponse);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                // Construct the poster image URL
+                URL posterImageURL = createUrl(IMAGE_BASE_URL + imdbSize  + urlString);
 
                 Movie testMovie = new Movie();
-                testMovie.setPosterImageImdbUrl(url);
-                Movie[] movies = {testMovie};
+                testMovie.setPosterImageImdbUrl(posterImageURL);
                 // return new Movie[0];
-                return movies;
+                return new Movie[]{testMovie};
             }
 
             /**
@@ -122,8 +129,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 try {
                     urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setRequestMethod("GET");
-                  //  urlConnection.setReadTimeout(READ_TIMEOUT_VALUE);
-                  //  urlConnection.setConnectTimeout(CONNECT_TIMEOUT_VALUE);
                     urlConnection.connect();
 
                     // If the request was successful (response code 200),
@@ -167,6 +172,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 return output.toString();
             }
 
+            private String extracturlStringFromJson(String jsonResponse) throws JSONException {
+                // If the JSON string is empty or null, then return early.
+                if (TextUtils.isEmpty(jsonResponse)) {
+                    return null;
+                }
+                JSONObject baseJsonResponse = new JSONObject(jsonResponse);
+                return baseJsonResponse.getString("poster_path");
+            }
 
         };
     }
@@ -176,9 +189,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Context context = getApplication().getBaseContext();
 
         URL testUrl = movies[0].getPosterImageImdbUrl();
-        //Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(mImageView);
         Picasso.with(context).load(testUrl.toString()).into(mImageView);
-
     }
 
     // We should remove any references the activity has to the loader's data.
