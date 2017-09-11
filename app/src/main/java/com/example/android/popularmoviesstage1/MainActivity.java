@@ -6,18 +6,26 @@ import android.content.Context;
 import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
 
+    @InjectView(R.id.main_imageView) ImageView mImageView;
     private static final int EXISTING_LOADER = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.inject(this);
 
         if (isOnline()) {
             // Initialize a loader to read movie data from themoviedb.org
@@ -55,8 +63,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // With this callback method we'll want display the data to the user.
     @Override public void onLoadFinished(Loader<Movie[]> loader, Movie[] movies) {
+        Context context = getApplication().getBaseContext();
 
-        // Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(imageView);
+        Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(mImageView);
 
     }
 
