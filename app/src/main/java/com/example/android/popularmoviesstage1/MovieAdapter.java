@@ -9,10 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
-
 
 class MovieAdapter extends ArrayAdapter<Movie> {
 
@@ -46,11 +44,7 @@ class MovieAdapter extends ArrayAdapter<Movie> {
 
         // Populate the data into the view using the data object
         assert movie != null;
-        viewHolder.originalTitle.setText(movie.getOriginalTitle());
-        viewHolder.imageView.setImageResource(movie.getPosterImageThumbnailResourceId());
-
         Log.d(LOG_TAG, movie.getPosterPath());
-
         String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
         Log.d(LOG_TAG, " posterImageURLString " + posterImageURLString);
         Context context = this.getContext();
@@ -58,15 +52,12 @@ class MovieAdapter extends ArrayAdapter<Movie> {
 
         // Return the completed view to render on screen
         return convertView;
-
     }
 
     private class ViewHolder {
-        TextView originalTitle;
         ImageView imageView;
 
         ViewHolder(View view) {
-            this.originalTitle = view.findViewById(R.id.tv_grid);
             this.imageView = view.findViewById(R.id.iv_grid);
         }
     }

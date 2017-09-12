@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">PopularMoviesStage1</string>
+    <string-array name="imdb_sort_options">
+        <item>Top Rated</item>
+        <item>Popular</item>
+    </string-array>
 </resources>

@@ -10,7 +10,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -29,6 +33,8 @@ import java.nio.charset.Charset;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
+import static android.widget.Toast.makeText;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movie[]> {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -36,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     MovieAdapter mMovieAdapter;
 
     @InjectView(R.id.gridView) GridView mGridView;
+    @InjectView(R.id.spinner) Spinner mSpinner;
 
     private static final int EXISTING_LOADER = 0;
 
@@ -54,6 +61,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
+        ArrayAdapter adapter = ArrayAdapter.createFromResource(this,
+                R.array.imdb_sort_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapter);
+
         if (isOnline()) {
             // Initialize a loader to read movie data from themoviedb.org
             // and display the current values in the editor.
@@ -62,8 +74,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             getLoaderManager().initLoader(EXISTING_LOADER, null, this).forceLoad();
         }
         else {
-            Toast.makeText(MainActivity.this, "We have no connectivity!", Toast.LENGTH_LONG).show();
+            makeText(MainActivity.this, "We have no connectivity!", Toast.LENGTH_LONG).show();
         }
+
+
     }
 
     public boolean isOnline() {
@@ -77,11 +91,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // We create a Loader object and return it to the system inside this callback method.
     @Override public Loader<Movie[]> onCreateLoader(int i, Bundle bundle) {
         return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
-            String urlString;
             Movie[] moviesFromJson;
 
             @Override public Movie[] loadInBackground() {
-
                 // Create URL object
                 URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
                 // Perform HTTP request to the URL and receive a JSON response back
@@ -103,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
 
                 if (moviesFromJson.length == 0) {
-                    Toast.makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                    makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
                 }
                 return moviesFromJson;
             }
@@ -241,9 +253,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     // With this callback method we'll want display the data to the user.
-    @Override public void onLoadFinished(Loader<Movie[]> loader, Movie[] movies) {
+    @Override public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
         if (movies.length == 0) {
-            Toast.makeText(MainActivity.this, "Empty result set from news API", Toast.LENGTH_LONG).show();
+            makeText(MainActivity.this, "Empty result set from news API", Toast.LENGTH_LONG).show();
         }
 
         mMovieAdapter = new MovieAdapter(this, movies);
@@ -251,6 +263,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mMovieAdapter.notifyDataSetChanged();
 
         mGridView.setAdapter(mMovieAdapter);
+
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                makeText(MainActivity.this, " movies.length: " + movies.length, Toast.LENGTH_SHORT).show();
+
+            }
+        });
     }
 
     // We should remove any references the activity has to the loader's data.
