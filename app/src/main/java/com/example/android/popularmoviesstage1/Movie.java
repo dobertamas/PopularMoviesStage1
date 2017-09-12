@@ -43,6 +43,11 @@ public class Movie {
      */
     private Date mReleaseDate;
 
+    /**
+     * The id of the movie.
+     */
+    private String id;
+
     public int getPosterImageThumbnailResourceId() {
         return mPosterImageThumbnailResourceId;
     }
@@ -98,6 +103,15 @@ public class Movie {
     public void setReleaseDate(Date releaseDate) {
         mReleaseDate = releaseDate;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
 
     // TODO: Generate toString()
 }

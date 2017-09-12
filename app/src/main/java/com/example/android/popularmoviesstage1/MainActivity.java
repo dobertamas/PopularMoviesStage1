@@ -35,21 +35,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     MovieAdapter mMovieAdapter;
 
-    // @InjectView(R.id.main_imageView) ImageView mImageView;
     @InjectView(R.id.gridView) GridView mGridView;
 
     private static final int EXISTING_LOADER = 0;
 
     public static final String IMDB_API_KEY = "HIDDEN";
 
-    public static final String IMDB_BASE_URL = "https://api.themoviedb.org/3/movie/550";
-    public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
-    private String imdbSize = "w185/";
-    //https://api.themoviedb.org/3/movie/popular?api_key=1dd7da8ccd7953d974d600c70d57eba7&language=en-US&page=1
     public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/popular";
     public static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
+
     private static final String UNKNOWN_ORIGINAL_TITLE = "unknown original title";
     public static final String UNKNOWN_POSTER_PATH = "unknown poster path";
+    public static final String UNKNOWN_ID = "unknown id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override public Movie[] loadInBackground() {
 
                 // Create URL object
-                //URL url = createUrl(IMDB_BASE_URL + "?api_key=" + IMDB_API_KEY);
                 URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
                 // Perform HTTP request to the URL and receive a JSON response back
                 String jsonResponse = "";
@@ -95,23 +91,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 } catch (IOException e) {
                     Log.e(LOG_TAG, "Problem making the HTTP request.", e);
                 }
-
-
-                // extract data from Json with error handling. You should get back the poster_path value.
+                // Extract data from Json with error handling.
                 try {
                     moviesFromJson = extracturlStringFromJson(jsonResponse);
                     assert moviesFromJson != null;
-                    Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                    if (moviesFromJson.length != 0) {
+                        Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                // Construct the poster image URL
-                URL posterImageURL = createUrl(IMAGE_BASE_URL + imdbSize + urlString);
 
-                Movie testMovie = new Movie();
-                testMovie.setPosterImageImdbUrl(posterImageURL);
-                // return new Movie[0];
-                //return new Movie[]{testMovie};
+                if (moviesFromJson.length == 0) {
+                    Toast.makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                }
                 return moviesFromJson;
             }
 
@@ -224,8 +217,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         movieLoopItem.setPosterPath(UNKNOWN_POSTER_PATH);
                     }
 
+                    // error handling when id is not available - setting UNKNOWN_POSTER_PATH
+                    try {
+                        String id = movieItem.getString("id");
+                        if (id != null) {
+                            movieLoopItem.setId(id);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        movieLoopItem.setPosterPath(UNKNOWN_ID);
+                    }
+
                     movies[x] = movieLoopItem;
                     Log.d(LOG_TAG, " movies[x].getPosterPath " + movies[x].getPosterPath());
+                    Log.d(LOG_TAG, " movies[x].getId " + movies[x].getId());
                 }
 
                 Log.d(LOG_TAG, " movies[0].getPosterPath " + movies[0].getPosterPath());
@@ -246,10 +251,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mMovieAdapter.notifyDataSetChanged();
 
         mGridView.setAdapter(mMovieAdapter);
-
-        //Context context = getApplication().getBaseContext();
-        // URL testUrl = movies[0].getPosterImageImdbUrl();
-        //  Picasso.with(context).load(testUrl.toString()).into(mImageView);
     }
 
     // We should remove any references the activity has to the loader's data.

@@ -11,10 +11,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 
 class MovieAdapter extends ArrayAdapter<Movie> {
 
     private static final String LOG_TAG = MovieAdapter.class.getSimpleName();
+
+    private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
+    private static final String IMDB_IMAGE_SIZE = "w185";
 
     MovieAdapter(@NonNull Context context, @NonNull Movie[] movieArray) {
         super(context, 0, movieArray);
@@ -43,6 +48,13 @@ class MovieAdapter extends ArrayAdapter<Movie> {
         assert movie != null;
         viewHolder.originalTitle.setText(movie.getOriginalTitle());
         viewHolder.imageView.setImageResource(movie.getPosterImageThumbnailResourceId());
+
+        Log.d(LOG_TAG, movie.getPosterPath());
+
+        String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
+        Log.d(LOG_TAG, " posterImageURLString " + posterImageURLString);
+        Context context = this.getContext();
+        Picasso.with(context).load(posterImageURLString).into(viewHolder.imageView);
 
         // Return the completed view to render on screen
         return convertView;
