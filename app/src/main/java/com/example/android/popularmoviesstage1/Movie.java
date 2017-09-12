@@ -17,6 +17,11 @@ public class Movie {
     private URL mPosterImageImdbUrl;
 
     /**
+     * The poster path value.
+     */
+    private String posterPath;
+
+    /**
      * The original title.
      */
     private String mOriginalTitle;
@@ -54,6 +59,14 @@ public class Movie {
         mPosterImageImdbUrl = posterImageImdbUrl;
     }
 
+    public String getPosterPath() {
+        return posterPath;
+    }
+
+    public void setPosterPath(String posterPath) {
+        this.posterPath = posterPath;
+    }
+
     public String getOriginalTitle() {
         return mOriginalTitle;
     }
@@ -86,5 +99,5 @@ public class Movie {
         mReleaseDate = releaseDate;
     }
 
-// TODO: Generate toString()
+    // TODO: Generate toString()
 }
