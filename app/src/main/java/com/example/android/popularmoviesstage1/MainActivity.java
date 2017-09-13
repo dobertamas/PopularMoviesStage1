@@ -11,11 +11,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     MovieAdapter mMovieAdapter;
 
     @InjectView(R.id.gridView) GridView mGridView;
-    @InjectView(R.id.spinner) Spinner mSpinner;
 
     private static final int EXISTING_LOADER = 0;
 
@@ -61,16 +60,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final String MOVIE_DATA = "MOVIE_DATA";
 
+
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.listing_options, menu);
+        return true;
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        int itemThatWasClickedId = item.getItemId();
+        if (itemThatWasClickedId == R.id.top_rated) {
+            String option = "topRated";
+            loadMovieData(option);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void loadMovieData(String option) {
+        makeText(MainActivity.this, "Inside loadMovieData" + option, Toast.LENGTH_LONG).show();
+        getLoaderManager().restartLoader(EXISTING_LOADER,null,this);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
-
-        ArrayAdapter adapter = ArrayAdapter.createFromResource(this,
-                R.array.imdb_sort_options, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mSpinner.setAdapter(adapter);
 
         if (isOnline()) {
             // Initialize a loader to read movie data from themoviedb.org

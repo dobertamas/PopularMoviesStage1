@@ -2,15 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="fill_horizontal"
-        android:drawSelectorOnTop="true">
-    </Spinner>
+              android:orientation="vertical">
 
     <GridView
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -18,10 +10,10 @@
         android:id="@+id/gridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:verticalSpacing="0dp"
         android:horizontalSpacing="0dp"
         android:numColumns="2"
         android:stretchMode="columnWidth"
+        android:verticalSpacing="0dp"
         tools:context="com.example.android.popularmoviesstage1.MainActivity">
     </GridView>
 
