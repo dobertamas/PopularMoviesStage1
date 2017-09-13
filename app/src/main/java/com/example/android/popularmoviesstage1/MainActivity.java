@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final String MOVIE_DATA = "MOVIE_DATA";
     private String movieListUrlString;
+    String option = "popular";
 
 
     @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,26 +73,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         int itemThatWasClickedId = item.getItemId();
         if (itemThatWasClickedId == R.id.top_rated) {
-            String option = "topRated";
+            option = "top_rated";
             loadMovieData(option);
         }
         if (itemThatWasClickedId == R.id.popular) {
-            String option = "popular";
+            option = "popular";
             loadMovieData(option);
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void loadMovieData(String option) {
-        makeText(MainActivity.this, " Inside loadMovieData " + option, Toast.LENGTH_LONG).show();
+        makeText(MainActivity.this, " Inside loadMovieData option = " + option, Toast.LENGTH_LONG).show();
+        Log.d(LOG_TAG, " Inside loadMovieData option = " + option);
 
         if (option.equals("top_rated")) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
-            getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+            Log.d(LOG_TAG, " Inside loadMovieData movieListUrlString = " + movieListUrlString);
+            getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
         if (option.equals("popular")) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
-            getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+            Log.d(LOG_TAG, " Inside loadMovieData movieListUrlString = " + movieListUrlString);
+            getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
 
     }
@@ -103,7 +107,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         ButterKnife.inject(this);
 
         if (isOnline()) {
-            movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
+            Log.d(LOG_TAG, " Inside onCreate option = " + option);
+            // movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
+            if (option.equals("top_rated")) {
+                movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
+                getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+            }
+            if (option.equals("popular")) {
+                movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
+                getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
+            }
 
             // Initialize a loader to read movie data from themoviedb.org
             // and display the current values in the editor.
