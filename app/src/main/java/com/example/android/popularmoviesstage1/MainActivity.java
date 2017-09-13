@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             makeText(MainActivity.this, "We have no connectivity!", Toast.LENGTH_LONG).show();
         }
 
-
     }
 
     public boolean isOnline() {
@@ -305,12 +304,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 makeText(MainActivity.this, " movies.length: " + movies.length, Toast.LENGTH_SHORT).show();
-                Intent movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
-                movieDetailstIntent.putExtra(MOVIE_DATA, movies);
-                startActivity(movieDetailstIntent);
 
+                Movie movie = mMovieAdapter.getItem(position);
+
+                Intent movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                movieDetailstIntent.putExtra(MOVIE_DATA, movie);
+                startActivity(movieDetailstIntent);
             }
         });
     }

@@ -54,7 +54,7 @@ class Movie implements Parcelable {
         this.mPosterPath = posterPath;
     }
 
-    public String getOriginalTitle() {
+    String getOriginalTitle() {
         return mOriginalTitle;
     }
 
@@ -62,7 +62,7 @@ class Movie implements Parcelable {
         mOriginalTitle = originalTitle;
     }
 
-    public String getOverview() {
+    String getOverview() {
         return mOverview;
     }
 
@@ -70,7 +70,7 @@ class Movie implements Parcelable {
         mOverview = overview;
     }
 
-    public String getVoteAverage() {
+    String getVoteAverage() {
         return mVoteAverage;
     }
 
@@ -78,7 +78,7 @@ class Movie implements Parcelable {
         mVoteAverage = voteAverage;
     }
 
-    public String getReleaseDateString() {
+    String getReleaseDateString() {
         return mReleaseDateString;
     }
 
@@ -96,15 +96,6 @@ class Movie implements Parcelable {
 
     Movie() {
     }
-
-   /* public Movie(String posterPath, String originalTitle, String overview, String voteAverage, String releaseDateString, String id) {
-        mPosterPath = posterPath;
-        mOriginalTitle = originalTitle;
-        mOverview = overview;
-        mVoteAverage = voteAverage;
-        mReleaseDateString = releaseDateString;
-        mId = id;
-    }*/
 
     private Movie(Parcel in) {
         mPosterPath = in.readString();
@@ -139,9 +130,13 @@ class Movie implements Parcelable {
         parcel.writeString(mId);
     }
 
-    // Interface that must be implemented and provided as a public CREATOR field
+    // We need to create the `Parcelable.Creator<MyParcelable> CREATOR` constant for our class.
+    // An interface that must be implemented and provided as a public CREATOR field
     // that generates instances of the Parcelable class from a Parcel.
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+
+        // This simply calls our new constructor (typically private) and
+        // passes along the unmarshalled `Parcel`, and then returns the new object
         @Override public Movie createFromParcel(Parcel parcel) {
             return new Movie(parcel);
         }
