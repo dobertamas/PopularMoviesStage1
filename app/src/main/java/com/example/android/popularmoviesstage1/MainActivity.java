@@ -49,7 +49,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public static final String IMDB_API_KEY = "HIDDEN";
 
-    public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/popular";
+    public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/";
+    private String mFromSpinner = "popular";
     public static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
 
     public static final String UNKNOWN_POSTER_PATH = "unknown poster path";
@@ -71,6 +72,27 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 R.array.imdb_sort_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSpinner.setAdapter(adapter);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position,
+                                       long id) {
+                if (position == 0) {
+                    Log.d(LOG_TAG, String.valueOf(position));
+                    mFromSpinner = "top_rated";
+                    getLoaderManager().restartLoader(EXISTING_LOADER, null, MainActivity.this);
+                }
+
+                if (position == 1) {
+                    Log.d(LOG_TAG, String.valueOf(position));
+                    mFromSpinner = "popular";
+                    getLoaderManager().restartLoader(EXISTING_LOADER, null, MainActivity.this);
+                }
+            }
+
+            @Override public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         if (isOnline()) {
             // Initialize a loader to read movie data from themoviedb.org
@@ -100,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override public Movie[] loadInBackground() {
                 // Create URL object
-                URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
+                URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + mFromSpinner + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
                 // Perform HTTP request to the URL and receive a JSON response back
                 String jsonResponse = "";
                 try {
@@ -320,4 +342,5 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override public void onLoaderReset(Loader<Movie[]> loader) {
 
     }
+
 }
