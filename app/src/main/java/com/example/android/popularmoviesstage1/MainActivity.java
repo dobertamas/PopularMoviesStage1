@@ -44,11 +44,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @InjectView(R.id.gridView) GridView mGridView;
 
-    private static final int EXISTING_LOADER = 0;
+    private static final int POPULAR_LOADER = 0;
+    private static final int TOP_RATED_LOADER = 1;
 
     public static final String IMDB_API_KEY = "HIDDEN";
 
-    public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/popular";
+    public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/";
+    public static final String SECOND_PART_POPULAR = "popular";
+    public static final String SECOND_PART_TOP_RATED = "top_rated";
     public static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
 
     public static final String UNKNOWN_POSTER_PATH = "unknown poster path";
@@ -72,12 +75,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             String option = "topRated";
             loadMovieData(option);
         }
+        if (itemThatWasClickedId == R.id.popular) {
+            String option = "popular";
+            loadMovieData(option);
+        }
         return super.onOptionsItemSelected(item);
     }
 
     private void loadMovieData(String option) {
-        makeText(MainActivity.this, "Inside loadMovieData" + option, Toast.LENGTH_LONG).show();
-        getLoaderManager().restartLoader(EXISTING_LOADER,null,this);
+        makeText(MainActivity.this, " Inside loadMovieData " + option, Toast.LENGTH_LONG).show();
+
+        if (option.equals("top_rated")) {
+            getLoaderManager().restartLoader(TOP_RATED_LOADER, null, this);
+        }
+        if (option.equals("popular")) {
+            getLoaderManager().restartLoader(POPULAR_LOADER, null, this);
+        }
+
     }
 
     @Override
@@ -91,7 +105,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             // and display the current values in the editor.
             // The first parameter is a unique ID that identifies the loader.
             // Optional arguments to supply to the loader at construction - null in this case.
-            getLoaderManager().initLoader(EXISTING_LOADER, null, this).forceLoad();
+            getLoaderManager().initLoader(POPULAR_LOADER, null, this).forceLoad();
+            getLoaderManager().initLoader(TOP_RATED_LOADER, null, this).forceLoad();
         }
         else {
             makeText(MainActivity.this, "We have no connectivity!", Toast.LENGTH_LONG).show();
@@ -108,204 +123,407 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Using anonymous inner class to provide AsyncTaskLoader functionality
     // We create a Loader object and return it to the system inside this callback method.
-    @Override public Loader<Movie[]> onCreateLoader(int i, Bundle bundle) {
-        return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
-            Movie[] moviesFromJson;
+    @Override public Loader<Movie[]> onCreateLoader(int loaderId, Bundle bundle) {
+        if (loaderId == 0) {
+            return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
+                Movie[] moviesFromJson;
 
-            @Override public Movie[] loadInBackground() {
-                // Create URL object
-                URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
-                // Perform HTTP request to the URL and receive a JSON response back
-                String jsonResponse = "";
-                try {
-                    jsonResponse = makeHttpRequest(url);
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Problem making the HTTP request.", e);
-                }
-                // Extract data from Json with error handling.
-                try {
-                    moviesFromJson = extracturlStringFromJson(jsonResponse);
-                    assert moviesFromJson != null;
-                    if (moviesFromJson.length != 0) {
-                        Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                @Override public Movie[] loadInBackground() {
+                    // Create URL object
+                    URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
+                    // Perform HTTP request to the URL and receive a JSON response back
+                    String jsonResponse = "";
+                    try {
+                        jsonResponse = makeHttpRequest(url);
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Problem making the HTTP request.", e);
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    // Extract data from Json with error handling.
+                    try {
+                        moviesFromJson = extracturlStringFromJson(jsonResponse);
+                        assert moviesFromJson != null;
+                        if (moviesFromJson.length != 0) {
+                            Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (moviesFromJson.length == 0) {
+                        makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                    }
+                    return moviesFromJson;
                 }
 
-                if (moviesFromJson.length == 0) {
-                    makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                /**
+                 * Returns new URL object from the given string URL.
+                 */
+                private URL createUrl(String urlString) {
+                    URL url;
+                    try {
+                        url = new URL(urlString);
+                    } catch (MalformedURLException exception) {
+                        Log.e(LOG_TAG, "Error with creating URL" + urlString, exception);
+                        return null;
+                    }
+                    return url;
                 }
-                return moviesFromJson;
-            }
 
-            /**
-             * Returns new URL object from the given string URL.
-             */
-            private URL createUrl(String urlString) {
-                URL url;
-                try {
-                    url = new URL(urlString);
-                } catch (MalformedURLException exception) {
-                    Log.e(LOG_TAG, "Error with creating URL" + urlString, exception);
-                    return null;
-                }
-                return url;
-            }
+                /**
+                 * Make an HTTP request to the given URL and return a String as the response.
+                 */
+                private String makeHttpRequest(URL url) throws IOException {
+                    String jsonResponse = "";
 
-            /**
-             * Make an HTTP request to the given URL and return a String as the response.
-             */
-            private String makeHttpRequest(URL url) throws IOException {
-                String jsonResponse = "";
+                    // If the URL is null, then return early.
+                    if (url == null) {
+                        return jsonResponse;
+                    }
 
-                // If the URL is null, then return early.
-                if (url == null) {
+                    HttpURLConnection urlConnection = null;
+                    InputStream inputStream = null;
+                    try {
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setRequestMethod("GET");
+                        urlConnection.connect();
+
+                        // If the request was successful (response code 200),
+                        // then read the input stream and parse the response.
+                        if (urlConnection.getResponseCode() == 200) {
+                            inputStream = urlConnection.getInputStream();
+                            jsonResponse = readFromStream(inputStream);
+                        }
+                        else {
+                            Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+                        }
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Problem retrieving JSON results.", e);
+                    } finally {
+                        if (urlConnection != null) {
+                            urlConnection.disconnect();
+                        }
+                        if (inputStream != null) {
+                            // function must handle java.io.IOException here
+                            inputStream.close();
+                        }
+                    }
                     return jsonResponse;
                 }
 
-                HttpURLConnection urlConnection = null;
-                InputStream inputStream = null;
-                try {
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
-
-                    // If the request was successful (response code 200),
-                    // then read the input stream and parse the response.
-                    if (urlConnection.getResponseCode() == 200) {
-                        inputStream = urlConnection.getInputStream();
-                        jsonResponse = readFromStream(inputStream);
-                    }
-                    else {
-                        Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
-                    }
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Problem retrieving JSON results.", e);
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
+                /**
+                 * Convert the {@link InputStream} into a String which contains the
+                 * whole JSON response from the server.
+                 */
+                private String readFromStream(InputStream inputStream) throws IOException {
+                    StringBuilder output = new StringBuilder();
                     if (inputStream != null) {
-                        // function must handle java.io.IOException here
-                        inputStream.close();
-                    }
-                }
-                return jsonResponse;
-            }
-
-            /**
-             * Convert the {@link InputStream} into a String which contains the
-             * whole JSON response from the server.
-             */
-            private String readFromStream(InputStream inputStream) throws IOException {
-                StringBuilder output = new StringBuilder();
-                if (inputStream != null) {
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
-                    BufferedReader reader = new BufferedReader(inputStreamReader);
-                    String line = reader.readLine();
-                    while (line != null) {
-                        output.append(line);
-                        line = reader.readLine();
-                    }
-                }
-                return output.toString();
-            }
-
-            private Movie[] extracturlStringFromJson(String jsonResponse) throws JSONException {
-                // If the JSON string is empty or null, then return early.
-                if (TextUtils.isEmpty(jsonResponse)) {
-                    return null;
-                }
-                JSONObject baseJsonResponse = new JSONObject(jsonResponse);
-                JSONArray resultsArray = baseJsonResponse.getJSONArray("results");
-
-                Movie[] movies = new Movie[resultsArray.length()];
-
-                for (int x = 0; x < resultsArray.length(); x++) {
-                    JSONObject movieItem = resultsArray.getJSONObject(x);
-                    Movie movieLoopItem = new Movie();
-
-                    // error handling when poster_path is not available - setting UNKNOWN_POSTER_PATH
-                    try {
-                        String posterPath = movieItem.getString("poster_path");
-                        if (posterPath != null) {
-                            movieLoopItem.setPosterPath(posterPath);
+                        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+                        BufferedReader reader = new BufferedReader(inputStreamReader);
+                        String line = reader.readLine();
+                        while (line != null) {
+                            output.append(line);
+                            line = reader.readLine();
                         }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setPosterPath(UNKNOWN_POSTER_PATH);
                     }
-
-                    // error handling when original_title is not available - setting UNKNOWN_ORIGINAL_TITLE
-                    try {
-                        String originalTitle = movieItem.getString("original_title");
-                        if (originalTitle != null) {
-                            movieLoopItem.setOriginalTitle(originalTitle);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setOriginalTitle(UNKNOWN_ORIGINAL_TITLE);
-                    }
-
-                    // error handling when poster_path is not available - setting UNKNOWN_OVERVIEW
-                    try {
-                        String overview = movieItem.getString("overview");
-                        if (overview != null) {
-                            movieLoopItem.setOverview(overview);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setOverview(UNKNOWN_OVERVIEW);
-                    }
-
-                    // error handling when id is not available - setting UNKNOWN_VOTE_AVERAGE
-                    try {
-                        String voteAverage = movieItem.getString("vote_average");
-                        if (voteAverage != null) {
-                            movieLoopItem.setVoteAverage(voteAverage);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setVoteAverage(UNKNOWN_VOTE_AVERAGE);
-                    }
-
-                    // error handling when id is not available - setting UNKNOWN_RELEASE_DATE
-                    try {
-                        String releaseDate = movieItem.getString("release_date");
-                        if (releaseDate != null) {
-                            movieLoopItem.setReleaseDateString(releaseDate);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setReleaseDateString(UNKNOWN_RELEASE_DATE);
-                    }
-
-                    // error handling when id is not available - setting UNKNOWN_ID
-                    try {
-                        String id = movieItem.getString("id");
-                        if (id != null) {
-                            movieLoopItem.setId(id);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setId(UNKNOWN_ID);
-                    }
-
-                    movies[x] = movieLoopItem;
-                    Log.d(LOG_TAG, " movies[x].getPosterPath " + movies[x].getPosterPath());
-                    Log.d(LOG_TAG, " movies[x].getId " + movies[x].getId());
+                    return output.toString();
                 }
 
-                Log.d(LOG_TAG, " movies[0].getPosterPath " + movies[0].getPosterPath());
-                return movies;
-            }
+                private Movie[] extracturlStringFromJson(String jsonResponse) throws JSONException {
+                    // If the JSON string is empty or null, then return early.
+                    if (TextUtils.isEmpty(jsonResponse)) {
+                        return null;
+                    }
+                    JSONObject baseJsonResponse = new JSONObject(jsonResponse);
+                    JSONArray resultsArray = baseJsonResponse.getJSONArray("results");
 
-        };
+                    Movie[] movies = new Movie[resultsArray.length()];
+
+                    for (int x = 0; x < resultsArray.length(); x++) {
+                        JSONObject movieItem = resultsArray.getJSONObject(x);
+                        Movie movieLoopItem = new Movie();
+
+                        // error handling when poster_path is not available - setting UNKNOWN_POSTER_PATH
+                        try {
+                            String posterPath = movieItem.getString("poster_path");
+                            if (posterPath != null) {
+                                movieLoopItem.setPosterPath(posterPath);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setPosterPath(UNKNOWN_POSTER_PATH);
+                        }
+
+                        // error handling when original_title is not available - setting UNKNOWN_ORIGINAL_TITLE
+                        try {
+                            String originalTitle = movieItem.getString("original_title");
+                            if (originalTitle != null) {
+                                movieLoopItem.setOriginalTitle(originalTitle);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setOriginalTitle(UNKNOWN_ORIGINAL_TITLE);
+                        }
+
+                        // error handling when poster_path is not available - setting UNKNOWN_OVERVIEW
+                        try {
+                            String overview = movieItem.getString("overview");
+                            if (overview != null) {
+                                movieLoopItem.setOverview(overview);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setOverview(UNKNOWN_OVERVIEW);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_VOTE_AVERAGE
+                        try {
+                            String voteAverage = movieItem.getString("vote_average");
+                            if (voteAverage != null) {
+                                movieLoopItem.setVoteAverage(voteAverage);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setVoteAverage(UNKNOWN_VOTE_AVERAGE);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_RELEASE_DATE
+                        try {
+                            String releaseDate = movieItem.getString("release_date");
+                            if (releaseDate != null) {
+                                movieLoopItem.setReleaseDateString(releaseDate);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setReleaseDateString(UNKNOWN_RELEASE_DATE);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_ID
+                        try {
+                            String id = movieItem.getString("id");
+                            if (id != null) {
+                                movieLoopItem.setId(id);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setId(UNKNOWN_ID);
+                        }
+
+                        movies[x] = movieLoopItem;
+                        Log.d(LOG_TAG, " movies[x].getPosterPath " + movies[x].getPosterPath());
+                        Log.d(LOG_TAG, " movies[x].getId " + movies[x].getId());
+                    }
+
+                    Log.d(LOG_TAG, " movies[0].getPosterPath " + movies[0].getPosterPath());
+                    return movies;
+                }
+
+            };
+        }
+        if (loaderId == 1) {
+            return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
+                Movie[] moviesFromJson;
+
+                @Override public Movie[] loadInBackground() {
+                    // Create URL object
+                    URL url = createUrl(IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART);
+                    // Perform HTTP request to the URL and receive a JSON response back
+                    String jsonResponse = "";
+                    try {
+                        jsonResponse = makeHttpRequest(url);
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+                    }
+                    // Extract data from Json with error handling.
+                    try {
+                        moviesFromJson = extracturlStringFromJson(jsonResponse);
+                        assert moviesFromJson != null;
+                        if (moviesFromJson.length != 0) {
+                            Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (moviesFromJson.length == 0) {
+                        makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                    }
+                    return moviesFromJson;
+                }
+
+                /**
+                 * Returns new URL object from the given string URL.
+                 */
+                private URL createUrl(String urlString) {
+                    URL url;
+                    try {
+                        url = new URL(urlString);
+                    } catch (MalformedURLException exception) {
+                        Log.e(LOG_TAG, "Error with creating URL" + urlString, exception);
+                        return null;
+                    }
+                    return url;
+                }
+
+                /**
+                 * Make an HTTP request to the given URL and return a String as the response.
+                 */
+                private String makeHttpRequest(URL url) throws IOException {
+                    String jsonResponse = "";
+
+                    // If the URL is null, then return early.
+                    if (url == null) {
+                        return jsonResponse;
+                    }
+
+                    HttpURLConnection urlConnection = null;
+                    InputStream inputStream = null;
+                    try {
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setRequestMethod("GET");
+                        urlConnection.connect();
+
+                        // If the request was successful (response code 200),
+                        // then read the input stream and parse the response.
+                        if (urlConnection.getResponseCode() == 200) {
+                            inputStream = urlConnection.getInputStream();
+                            jsonResponse = readFromStream(inputStream);
+                        }
+                        else {
+                            Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+                        }
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Problem retrieving JSON results.", e);
+                    } finally {
+                        if (urlConnection != null) {
+                            urlConnection.disconnect();
+                        }
+                        if (inputStream != null) {
+                            // function must handle java.io.IOException here
+                            inputStream.close();
+                        }
+                    }
+                    return jsonResponse;
+                }
+
+                /**
+                 * Convert the {@link InputStream} into a String which contains the
+                 * whole JSON response from the server.
+                 */
+                private String readFromStream(InputStream inputStream) throws IOException {
+                    StringBuilder output = new StringBuilder();
+                    if (inputStream != null) {
+                        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+                        BufferedReader reader = new BufferedReader(inputStreamReader);
+                        String line = reader.readLine();
+                        while (line != null) {
+                            output.append(line);
+                            line = reader.readLine();
+                        }
+                    }
+                    return output.toString();
+                }
+
+                private Movie[] extracturlStringFromJson(String jsonResponse) throws JSONException {
+                    // If the JSON string is empty or null, then return early.
+                    if (TextUtils.isEmpty(jsonResponse)) {
+                        return null;
+                    }
+                    JSONObject baseJsonResponse = new JSONObject(jsonResponse);
+                    JSONArray resultsArray = baseJsonResponse.getJSONArray("results");
+
+                    Movie[] movies = new Movie[resultsArray.length()];
+
+                    for (int x = 0; x < resultsArray.length(); x++) {
+                        JSONObject movieItem = resultsArray.getJSONObject(x);
+                        Movie movieLoopItem = new Movie();
+
+                        // error handling when poster_path is not available - setting UNKNOWN_POSTER_PATH
+                        try {
+                            String posterPath = movieItem.getString("poster_path");
+                            if (posterPath != null) {
+                                movieLoopItem.setPosterPath(posterPath);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setPosterPath(UNKNOWN_POSTER_PATH);
+                        }
+
+                        // error handling when original_title is not available - setting UNKNOWN_ORIGINAL_TITLE
+                        try {
+                            String originalTitle = movieItem.getString("original_title");
+                            if (originalTitle != null) {
+                                movieLoopItem.setOriginalTitle(originalTitle);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setOriginalTitle(UNKNOWN_ORIGINAL_TITLE);
+                        }
+
+                        // error handling when poster_path is not available - setting UNKNOWN_OVERVIEW
+                        try {
+                            String overview = movieItem.getString("overview");
+                            if (overview != null) {
+                                movieLoopItem.setOverview(overview);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setOverview(UNKNOWN_OVERVIEW);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_VOTE_AVERAGE
+                        try {
+                            String voteAverage = movieItem.getString("vote_average");
+                            if (voteAverage != null) {
+                                movieLoopItem.setVoteAverage(voteAverage);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setVoteAverage(UNKNOWN_VOTE_AVERAGE);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_RELEASE_DATE
+                        try {
+                            String releaseDate = movieItem.getString("release_date");
+                            if (releaseDate != null) {
+                                movieLoopItem.setReleaseDateString(releaseDate);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setReleaseDateString(UNKNOWN_RELEASE_DATE);
+                        }
+
+                        // error handling when id is not available - setting UNKNOWN_ID
+                        try {
+                            String id = movieItem.getString("id");
+                            if (id != null) {
+                                movieLoopItem.setId(id);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            movieLoopItem.setId(UNKNOWN_ID);
+                        }
+
+                        movies[x] = movieLoopItem;
+                        Log.d(LOG_TAG, " movies[x].getPosterPath " + movies[x].getPosterPath());
+                        Log.d(LOG_TAG, " movies[x].getId " + movies[x].getId());
+                    }
+
+                    Log.d(LOG_TAG, " movies[0].getPosterPath " + movies[0].getPosterPath());
+                    return movies;
+                }
+
+            };
+
+        }
+
+        return null;
     }
 
     // With this callback method we'll want display the data to the user.
     @Override public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
+        int loaderId = loader.getId();// find which loader you called
+        makeText(MainActivity.this, " loaderId was: " + loaderId, Toast.LENGTH_LONG).show();
+
         if (movies.length == 0) {
             makeText(MainActivity.this, "Empty result set from news API", Toast.LENGTH_LONG).show();
         }
@@ -332,6 +550,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // We should remove any references the activity has to the loader's data.
     @Override public void onLoaderReset(Loader<Movie[]> loader) {
+        mMovieAdapter.clear();
 
     }
 }
