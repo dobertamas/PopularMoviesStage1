@@ -3,6 +3,7 @@ package com.example.android.popularmoviesstage1;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -51,9 +52,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/popular";
     public static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
 
-    private static final String UNKNOWN_ORIGINAL_TITLE = "unknown original title";
     public static final String UNKNOWN_POSTER_PATH = "unknown poster path";
+    private static final String UNKNOWN_ORIGINAL_TITLE = "unknown original title";
+    public static final String UNKNOWN_OVERVIEW = "unknown overview";
+    public static final String UNKNOWN_VOTE_AVERAGE = "unknown vote_average";
+    public static final String UNKNOWN_RELEASE_DATE = "unknown release date";
     public static final String UNKNOWN_ID = "unknown id";
+
+    public static final String MOVIE_DATA = "MOVIE_DATA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -207,17 +213,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     JSONObject movieItem = resultsArray.getJSONObject(x);
                     Movie movieLoopItem = new Movie();
 
-                    // error handling when original_title is not available - setting UNKNOWN_TITLE
-                    try {
-                        String originalTitle = movieItem.getString("original_title");
-                        if (originalTitle != null) {
-                            movieLoopItem.setOriginalTitle(originalTitle);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        movieLoopItem.setOriginalTitle(UNKNOWN_ORIGINAL_TITLE);
-                    }
-
                     // error handling when poster_path is not available - setting UNKNOWN_POSTER_PATH
                     try {
                         String posterPath = movieItem.getString("poster_path");
@@ -229,7 +224,51 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         movieLoopItem.setPosterPath(UNKNOWN_POSTER_PATH);
                     }
 
-                    // error handling when id is not available - setting UNKNOWN_POSTER_PATH
+                    // error handling when original_title is not available - setting UNKNOWN_ORIGINAL_TITLE
+                    try {
+                        String originalTitle = movieItem.getString("original_title");
+                        if (originalTitle != null) {
+                            movieLoopItem.setOriginalTitle(originalTitle);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        movieLoopItem.setOriginalTitle(UNKNOWN_ORIGINAL_TITLE);
+                    }
+
+                    // error handling when poster_path is not available - setting UNKNOWN_OVERVIEW
+                    try {
+                        String overview = movieItem.getString("overview");
+                        if (overview != null) {
+                            movieLoopItem.setOverview(overview);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        movieLoopItem.setOverview(UNKNOWN_OVERVIEW);
+                    }
+
+                    // error handling when id is not available - setting UNKNOWN_VOTE_AVERAGE
+                    try {
+                        String voteAverage = movieItem.getString("vote_average");
+                        if (voteAverage != null) {
+                            movieLoopItem.setVoteAverage(voteAverage);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        movieLoopItem.setVoteAverage(UNKNOWN_VOTE_AVERAGE);
+                    }
+
+                    // error handling when id is not available - setting UNKNOWN_RELEASE_DATE
+                    try {
+                        String releaseDate = movieItem.getString("release_date");
+                        if (releaseDate != null) {
+                            movieLoopItem.setReleaseDateString(releaseDate);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        movieLoopItem.setReleaseDateString(UNKNOWN_RELEASE_DATE);
+                    }
+
+                    // error handling when id is not available - setting UNKNOWN_ID
                     try {
                         String id = movieItem.getString("id");
                         if (id != null) {
@@ -237,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        movieLoopItem.setPosterPath(UNKNOWN_ID);
+                        movieLoopItem.setId(UNKNOWN_ID);
                     }
 
                     movies[x] = movieLoopItem;
@@ -268,6 +307,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 makeText(MainActivity.this, " movies.length: " + movies.length, Toast.LENGTH_SHORT).show();
+                Intent movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                movieDetailstIntent.putExtra(MOVIE_DATA, movies);
+                startActivity(movieDetailstIntent);
 
             }
         });

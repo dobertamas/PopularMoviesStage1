@@ -1,25 +1,22 @@
 package com.example.android.popularmoviesstage1;
 
-import java.net.URL;
-import java.util.Date;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Movie {
+class Movie implements Parcelable {
 
-    /**
-     * The resource ID to locate the image associated with the given Attraction.
-     * The resource ID can be null.
-     */
-    private int mPosterImageThumbnailResourceId;
 
-    /**
-     * The HTTP URl for the movie poster image.
-     */
-    private URL mPosterImageImdbUrl;
+   /* Allow the user to tap on a movie poster and transition to a details screen with additional information such as:
+    original title
+    movie poster image thumbnail
+    A plot synopsis (called overview in the api)
+    user rating (called vote_average in the api)
+    release date*/
 
     /**
      * The poster path value.
      */
-    private String posterPath;
+    private String mPosterPath;
 
     /**
      * The original title.
@@ -41,42 +38,27 @@ public class Movie {
     /**
      * The release date.
      */
-    private Date mReleaseDate;
+    private String mReleaseDateString;
 
     /**
-     * The id of the movie.
+     * The mId of the movie.
      */
-    private String id;
+    private String mId;
 
-    public int getPosterImageThumbnailResourceId() {
-        return mPosterImageThumbnailResourceId;
+
+    String getPosterPath() {
+        return mPosterPath;
     }
 
-    public void setPosterImageThumbnailResourceId(int posterImageThumbnailResourceId) {
-        mPosterImageThumbnailResourceId = posterImageThumbnailResourceId;
-    }
-
-    public URL getPosterImageImdbUrl() {
-        return mPosterImageImdbUrl;
-    }
-
-    public void setPosterImageImdbUrl(URL posterImageImdbUrl) {
-        mPosterImageImdbUrl = posterImageImdbUrl;
-    }
-
-    public String getPosterPath() {
-        return posterPath;
-    }
-
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
+    void setPosterPath(String posterPath) {
+        this.mPosterPath = posterPath;
     }
 
     public String getOriginalTitle() {
         return mOriginalTitle;
     }
 
-    public void setOriginalTitle(String originalTitle) {
+    void setOriginalTitle(String originalTitle) {
         mOriginalTitle = originalTitle;
     }
 
@@ -84,7 +66,7 @@ public class Movie {
         return mOverview;
     }
 
-    public void setOverview(String overview) {
+    void setOverview(String overview) {
         mOverview = overview;
     }
 
@@ -92,26 +74,80 @@ public class Movie {
         return mVoteAverage;
     }
 
-    public void setVoteAverage(String voteAverage) {
+    void setVoteAverage(String voteAverage) {
         mVoteAverage = voteAverage;
     }
 
-    public Date getReleaseDate() {
-        return mReleaseDate;
+    public String getReleaseDateString() {
+        return mReleaseDateString;
     }
 
-    public void setReleaseDate(Date releaseDate) {
-        mReleaseDate = releaseDate;
+    void setReleaseDateString(String releaseDateString) {
+        mReleaseDateString = releaseDateString;
     }
 
-    public String getId() {
-        return id;
+    String getId() {
+        return mId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    void setId(String id) {
+        this.mId = id;
     }
 
+    Movie() {
+    }
 
-    // TODO: Generate toString()
+   /* public Movie(String posterPath, String originalTitle, String overview, String voteAverage, String releaseDateString, String id) {
+        mPosterPath = posterPath;
+        mOriginalTitle = originalTitle;
+        mOverview = overview;
+        mVoteAverage = voteAverage;
+        mReleaseDateString = releaseDateString;
+        mId = id;
+    }*/
+
+    private Movie(Parcel in) {
+        mPosterPath = in.readString();
+        mOriginalTitle = in.readString();
+        mOverview = in.readString();
+        mVoteAverage = in.readString();
+        mReleaseDateString = in.readString();
+        mId = in.readString();
+    }
+
+    @Override public String toString() {
+        return "Movie{" +
+                "mPosterPath='" + mPosterPath + '\'' +
+                ", mOriginalTitle='" + mOriginalTitle + '\'' +
+                ", mOverview='" + mOverview + '\'' +
+                ", mVoteAverage='" + mVoteAverage + '\'' +
+                ", mReleaseDateString='" + mReleaseDateString + '\'' +
+                ", mId='" + mId + '\'' +
+                '}';
+    }
+
+    @Override public int describeContents() {
+        return 0;
+    }
+
+    @Override public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mPosterPath);
+        parcel.writeString(mOriginalTitle);
+        parcel.writeString(mOverview);
+        parcel.writeString(mVoteAverage);
+        parcel.writeString(mReleaseDateString);
+        parcel.writeString(mId);
+    }
+
+    // Interface that must be implemented and provided as a public CREATOR field
+    // that generates instances of the Parcelable class from a Parcel.
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override public Movie createFromParcel(Parcel parcel) {
+            return new Movie(parcel);
+        }
+
+        @Override public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 }
