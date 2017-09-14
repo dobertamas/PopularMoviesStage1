@@ -40,8 +40,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    public static final String DATA = "data";
-    private static Movie[] data;
     private String OPTION = "option";
 
     MovieAdapter mMovieAdapter;
@@ -67,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final String MOVIE_DATA = "MOVIE_DATA";
     private String movieListUrlString;
     String option = "popular";
-    Intent movieDetailstIntent;
 
     @Override public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.listing_options, menu);
@@ -88,17 +85,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadMovieData(String option) {
-        makeText(MainActivity.this, " Inside loadMovieData option = " + option, Toast.LENGTH_LONG).show();
         Log.d(LOG_TAG, " Inside loadMovieData option = " + option);
 
         if (option.equals("top_rated")) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
-            Log.d(LOG_TAG, " Inside loadMovieData movieListUrlString = " + movieListUrlString);
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
         if (option.equals("popular")) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
-            Log.d(LOG_TAG, " Inside loadMovieData movieListUrlString = " + movieListUrlString);
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
 
@@ -111,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         ButterKnife.inject(this);
 
         if (savedInstanceState != null) {
-            Movie[] data = (Movie[]) savedInstanceState.getParcelableArray(DATA);
             option = savedInstanceState.getString(OPTION);
         }
 
@@ -164,11 +157,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
             }
 
-
             // Sends the result of the load to the registered listener
             public void deliverResult(Movie[] data) {
-                moviesFromJson = data;
-                MainActivity.data = moviesFromJson;
                 super.deliverResult(data);
             }
 
@@ -353,11 +343,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     }
 
                     movies[x] = movieLoopItem;
-                    Log.d(LOG_TAG, " movies[x].getPosterPath " + movies[x].getPosterPath());
-                    Log.d(LOG_TAG, " movies[x].getId " + movies[x].getId());
                 }
 
-                Log.d(LOG_TAG, " movies[0].getPosterPath " + movies[0].getPosterPath());
                 return movies;
             }
 
@@ -381,11 +368,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                makeText(MainActivity.this, " movies.length: " + movies.length, Toast.LENGTH_SHORT).show();
 
                 Movie movie = mMovieAdapter.getItem(position);
 
-                movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                Intent movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
                 movieDetailstIntent.putExtra(MOVIE_DATA, movie);
                 startActivity(movieDetailstIntent);
             }
@@ -395,12 +381,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // We should remove any references the activity has to the loader's data.
     @Override public void onLoaderReset(Loader<Movie[]> loader) {
         mMovieAdapter.clear();
-
     }
 
     @Override protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArray(DATA, MainActivity.data);
         outState.putString(OPTION, option);
     }
 }
