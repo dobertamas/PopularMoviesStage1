@@ -40,6 +40,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
+    public static final String DATA = "data";
+    private static Movie[] data;
+    private String OPTION = "option";
+
     MovieAdapter mMovieAdapter;
 
     @InjectView(R.id.gridView) GridView mGridView;
@@ -63,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final String MOVIE_DATA = "MOVIE_DATA";
     private String movieListUrlString;
     String option = "popular";
-
+    Intent movieDetailstIntent;
 
     @Override public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.listing_options, menu);
@@ -106,9 +110,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
+        if (savedInstanceState != null) {
+            Movie[] data = (Movie[]) savedInstanceState.getParcelableArray(DATA);
+            option = savedInstanceState.getString(OPTION);
+        }
+
         if (isOnline()) {
-            Log.d(LOG_TAG, " Inside onCreate option = " + option);
-            // movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
             if (option.equals("top_rated")) {
                 movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
                 getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
@@ -138,11 +145,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     // Using anonymous inner class to provide AsyncTaskLoader functionality
-    // We create a Loader object and return it to the system inside this callback method.
+    // We create a Loader object and return it to the system inside this callback method
     @Override public Loader<Movie[]> onCreateLoader(int loaderId, Bundle bundle) {
 
         return new AsyncTaskLoader<Movie[]>(MainActivity.this) {
+
+            //This will work as a cache variable.
             Movie[] moviesFromJson;
+
+            @Override
+            public void onStartLoading() {
+                super.onStartLoading();
+                if (moviesFromJson != null) {
+                    deliverResult(moviesFromJson);
+                }
+                else {
+                    forceLoad();
+                }
+            }
+
+
+            // Sends the result of the load to the registered listener
+            public void deliverResult(Movie[] data) {
+                moviesFromJson = data;
+                MainActivity.data = moviesFromJson;
+                super.deliverResult(data);
+            }
 
             @Override public Movie[] loadInBackground() {
                 // Create URL object
@@ -357,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 Movie movie = mMovieAdapter.getItem(position);
 
-                Intent movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                movieDetailstIntent = new Intent(MainActivity.this, DetailsActivity.class);
                 movieDetailstIntent.putExtra(MOVIE_DATA, movie);
                 startActivity(movieDetailstIntent);
             }
@@ -368,5 +396,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override public void onLoaderReset(Loader<Movie[]> loader) {
         mMovieAdapter.clear();
 
+    }
+
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArray(DATA, MainActivity.data);
+        outState.putString(OPTION, option);
     }
 }
