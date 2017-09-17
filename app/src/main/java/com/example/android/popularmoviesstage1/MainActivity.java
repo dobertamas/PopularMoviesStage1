@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final int MOVIE_LOADER = 0;
 
-    public static final String IMDB_API_KEY = "HIDDEN";
+    private static final String IMDB_API_KEY = BuildConfig.API_KEY;
 
     public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/";
     public static final String SECOND_PART_POPULAR = "popular";
