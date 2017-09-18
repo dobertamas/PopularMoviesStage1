@@ -40,13 +40,11 @@ class MovieAdapter extends ArrayAdapter<Movie> {
         }
 
         Movie movie = getItem(position);
-        Log.d(LOG_TAG, " getting item");
 
         // Populate the data into the view using the data object
         assert movie != null;
         Log.d(LOG_TAG, movie.getPosterPath());
         String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
-        Log.d(LOG_TAG, " posterImageURLString " + posterImageURLString);
         Context context = this.getContext();
         Picasso.with(context).load(posterImageURLString).into(viewHolder.imageView);
 

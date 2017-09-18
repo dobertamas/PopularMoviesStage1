@@ -85,13 +85,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadMovieData(String option) {
-        Log.d(LOG_TAG, " Inside loadMovieData option = " + option);
+        Log.d(LOG_TAG, MainActivity.this.getResources().getString(R.string.option_value_inside_loadMovieData) + option);
 
-        if (option.equals("top_rated")) {
+        if (option.equals(SECOND_PART_TOP_RATED)) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_TOP_RATED + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
-        if (option.equals("popular")) {
+        if (option.equals(SECOND_PART_POPULAR)) {
             movieListUrlString = IMDB_POPULAR_URL_FIRST_PART + SECOND_PART_POPULAR + "?api_key=" + IMDB_API_KEY + IMDB_POPULAR_URL_SECOND_PART;
             getLoaderManager().restartLoader(MOVIE_LOADER, null, this).forceLoad();
         }
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             getLoaderManager().initLoader(MOVIE_LOADER, null, this).forceLoad();
         }
         else {
-            makeText(MainActivity.this, "We have no connectivity!", Toast.LENGTH_LONG).show();
+            makeText(MainActivity.this, MainActivity.this.getResources().getString(R.string.no_connectivity), Toast.LENGTH_LONG).show();
         }
 
     }
@@ -170,21 +170,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 try {
                     jsonResponse = makeHttpRequest(url);
                 } catch (IOException e) {
-                    Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+                    Log.e(LOG_TAG, MainActivity.this.getResources().getString(R.string.error_message_making_http_request), e);
                 }
                 // Extract data from Json with error handling.
                 try {
                     moviesFromJson = extracturlStringFromJson(jsonResponse);
                     assert moviesFromJson != null;
                     if (moviesFromJson.length != 0) {
-                        Log.d(LOG_TAG, " moviesFromJson[0].getPosterPath() " + moviesFromJson[0].getPosterPath());
+                        Log.d(LOG_TAG, MainActivity.this.getResources().getString(R.string.posterPath_from_first_movie) + moviesFromJson[0].getPosterPath());
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 if (moviesFromJson.length == 0) {
-                    makeText(MainActivity.this, "Empty result set from the JSON response", Toast.LENGTH_LONG).show();
+                    makeText(MainActivity.this, MainActivity.this.getResources().getString(R.string.empty_result_from_json), Toast.LENGTH_LONG).show();
                 }
                 return moviesFromJson;
             }
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 try {
                     url = new URL(urlString);
                 } catch (MalformedURLException exception) {
-                    Log.e(LOG_TAG, "Error with creating URL" + urlString, exception);
+                    Log.e(LOG_TAG, MainActivity.this.getResources().getString(R.string.error_creating_url) + urlString, exception);
                     return null;
                 }
                 return url;
@@ -228,10 +228,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         jsonResponse = readFromStream(inputStream);
                     }
                     else {
-                        Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+                        Log.e(LOG_TAG, MainActivity.this.getResources().getString(R.string.error_response_code) + urlConnection.getResponseCode());
                     }
                 } catch (IOException e) {
-                    Log.e(LOG_TAG, "Problem retrieving JSON results.", e);
+                    Log.e(LOG_TAG, MainActivity.this.getResources().getString(R.string.problem_retrieving_json_results), e);
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect();
@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override public void onLoadFinished(Loader<Movie[]> loader, final Movie[] movies) {
 
         if (movies.length == 0) {
-            makeText(MainActivity.this, "Empty result set from news API", Toast.LENGTH_LONG).show();
+            makeText(MainActivity.this, MainActivity.this.getResources().getString(R.string.empty_result_set), Toast.LENGTH_LONG).show();
         }
 
         mMovieAdapter = new MovieAdapter(this, movies);
@@ -378,9 +378,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
     }
 
-    // We should remove any references the activity has to the loader's data.
+    // We should remove any references the activity has to the loader's data
     @Override public void onLoaderReset(Loader<Movie[]> loader) {
-        mMovieAdapter.clear();
+        switch (loader.getId()) {
+            case MOVIE_LOADER:
+                mMovieAdapter.notifyDataSetInvalidated();
+                break;
+            default:
+                throw new UnsupportedOperationException(MainActivity.this.getResources().getString(R.string.unknown_loader_id) + loader.getId());
+        }
     }
 
     @Override protected void onSaveInstanceState(Bundle outState) {

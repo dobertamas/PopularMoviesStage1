@@ -38,7 +38,6 @@ public class DetailsActivity extends AppCompatActivity {
         Movie movie = intent.getExtras().getParcelable(MOVIE_DATA);
         if (movie != null) {
             Log.d(LOG_TAG, movie.getOriginalTitle());
-            Log.d(LOG_TAG, movie.getOverview());
         }
         assert movie != null;
         mOriginalTitle.setText(movie.getOriginalTitle());
@@ -47,7 +46,6 @@ public class DetailsActivity extends AppCompatActivity {
         mReleaseDateTextView.setText(movie.getReleaseDateString());
 
         String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
-        Log.d(LOG_TAG, " posterImageURLString " + posterImageURLString);
         Picasso.with(this).load(posterImageURLString).into(mImageView);
     }
 
