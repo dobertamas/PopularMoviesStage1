@@ -46,7 +46,12 @@ class MovieAdapter extends ArrayAdapter<Movie> {
         Log.d(LOG_TAG, movie.getPosterPath());
         String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
         Context context = this.getContext();
-        Picasso.with(context).load(posterImageURLString).into(viewHolder.imageView);
+        Picasso.
+                with(context).
+                load(posterImageURLString).
+                placeholder(R.drawable.user_placeholder).
+                error(R.drawable.user_placeholder_error).
+                into(viewHolder.imageView);
 
         // Return the completed view to render on screen
         return convertView;

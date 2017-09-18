@@ -46,7 +46,17 @@ public class DetailsActivity extends AppCompatActivity {
         mReleaseDateTextView.setText(movie.getReleaseDateString());
 
         String posterImageURLString = IMAGE_BASE_URL + IMDB_IMAGE_SIZE + movie.getPosterPath();
-        Picasso.with(this).load(posterImageURLString).into(mImageView);
+        Picasso.
+                with(this).
+                load(posterImageURLString).
+                placeholder(R.drawable.user_placeholder).
+                error(R.drawable.user_placeholder_error).
+                into(mImageView);
     }
 
+    @Override protected void onRestart() {
+        super.onRestart();
+        Intent movieListIntent = new Intent(DetailsActivity.this, MainActivity.class);
+        startActivity(movieListIntent);
+    }
 }

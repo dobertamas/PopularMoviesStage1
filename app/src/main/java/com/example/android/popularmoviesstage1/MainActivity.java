@@ -50,21 +50,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final String IMDB_API_KEY = BuildConfig.API_KEY;
 
-    public static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/";
-    public static final String SECOND_PART_POPULAR = "popular";
-    public static final String SECOND_PART_TOP_RATED = "top_rated";
-    public static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
+    private static final String IMDB_POPULAR_URL_FIRST_PART = "https://api.themoviedb.org/3/movie/";
+    private static final String SECOND_PART_POPULAR = "popular";
+    private static final String SECOND_PART_TOP_RATED = "top_rated";
+    private static final String IMDB_POPULAR_URL_SECOND_PART = "&language=en-US";
 
-    public static final String UNKNOWN_POSTER_PATH = "unknown poster path";
+    private static final String UNKNOWN_POSTER_PATH = "unknown poster path";
     private static final String UNKNOWN_ORIGINAL_TITLE = "unknown original title";
-    public static final String UNKNOWN_OVERVIEW = "unknown overview";
+    private static final String UNKNOWN_OVERVIEW = "unknown overview";
     public static final String UNKNOWN_VOTE_AVERAGE = "unknown vote_average";
-    public static final String UNKNOWN_RELEASE_DATE = "unknown release date";
-    public static final String UNKNOWN_ID = "unknown id";
+    private static final String UNKNOWN_RELEASE_DATE = "unknown release date";
+    private static final String UNKNOWN_ID = "unknown id";
 
-    public static final String MOVIE_DATA = "MOVIE_DATA";
+    static final String MOVIE_DATA = "MOVIE_DATA";
     private String movieListUrlString;
-    String option = "popular";
+    private String option = "popular";
 
     @Override public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.listing_options, menu);
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-    public boolean isOnline() {
+    private boolean isOnline() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
